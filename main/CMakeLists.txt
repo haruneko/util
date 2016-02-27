@@ -20,4 +20,5 @@ add_library(haruneko_util json/Json.h json/QHashJson.h json/QSetJson.h io/Device
 
 target_link_libraries(haruneko_util Qt5::Core)
 
-target_include_directories(haruneko_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(TARGETS haruneko_util DESTINATION lib/haruneko EXPORT haruneko_util_targets)
+install(EXPORT haruneko_util_targets DESTINATION lib/haruneko)
