@@ -36,7 +36,7 @@ namespace util {
         Try<T> read(const QSharedPointer<QIODevice> &device) {
             return applyTry<T>([device, this]() -> T {
                 if(device.isNull() || !device->open(QIODevice::ReadOnly)) {
-                    throw new Exception("Open-able device not found.");
+                    throw Exception("Open-able device not found.");
                 }
                 QString jsonString = DeviceTextReader::readAll(device, this->codec);
                 device->close();
@@ -44,11 +44,10 @@ namespace util {
                 QJsonParseError error;
                 QJsonDocument doc(QJsonDocument::fromJson(jsonString.toUtf8(), &error).object());
                 if(error.error != QJsonParseError::NoError) {
-                    throw new util::Exception(
-                            "Json parse error @" + QString::number(error.offset) + " message is `"  + error.errorString() + "`");
+                    throw util::Exception("Json parse error @" + QString::number(error.offset) + " message is `"  + error.errorString() + "`");
                 }
                 if(!doc.isObject()) {
-                    throw new Exception("Given JSON is not an object.");
+                    throw Exception("Given JSON is not an object.");
                 }
                 return Json::fromJson<T>(doc.object());
             });

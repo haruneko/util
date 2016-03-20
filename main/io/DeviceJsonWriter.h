@@ -39,17 +39,17 @@ namespace util {
         Try<Unit> write(const T &t, const QSharedPointer<QIODevice> &device) override {
             return applyTry<Unit>([t, device, this]() -> Unit {
                 if(device.isNull()) {
-                    throw new Exception("No device found");
+                    throw Exception("No device found");
                 }
 
                 QJsonValue jsonValue(Json::toJson(t));
                 if(!jsonValue.isObject()) {
-                    throw new Exception("Given object as t is not an object.(maybe an array)");
+                    throw Exception("Given object as t is not an object.(maybe an array)");
                 }
                 QJsonDocument json(jsonValue.toObject());
 
                 if(!device->open(QIODevice::WriteOnly)) {
-                    throw new Exception("Failed opening device");
+                    throw Exception("Failed opening device");
                 }
 
                 QTextStream ts(device.data());

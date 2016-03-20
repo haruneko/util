@@ -13,7 +13,7 @@ using namespace haruneko::util;
 
 QString haruneko::util::DeviceTextReader::readAll(const QSharedPointer<QIODevice> &device, QTextCodec *codec) {
     if(device.isNull() || !device->isOpen() || !device->isReadable()) {
-        throw new Exception("Given device is not readable.");
+        throw Exception("Given device is not readable.");
     }
     QTextStream ts(device.data());
     ts.setCodec(codec);
@@ -22,7 +22,7 @@ QString haruneko::util::DeviceTextReader::readAll(const QSharedPointer<QIODevice
 
 QString haruneko::util::DeviceTextReader::readLine(const QSharedPointer<QIODevice> &device, QTextCodec *codec) {
     if(device.isNull() || !device->isOpen() || !device->isReadable()) {
-        throw new Exception("Given device is not readable.");
+        throw Exception("Given device is not readable.");
     }
     QTextStream ts(device.data());
     ts.setCodec(codec);
