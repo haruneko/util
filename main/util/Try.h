@@ -31,16 +31,16 @@ namespace util {
     public:
         template <class _A> class TryData : public QSharedData {
         public:
-            TryData(const _A &a) : a(a), isSuccess(true), exception(NULL) { }
-            TryData(const Exception *e) : a(), isSuccess(false), exception(e) { }
+            TryData(const _A &a) : a(a), isSuccess(true), exception() { }
+            TryData(const Exception &e) : a(), isSuccess(false), exception(e) { }
             const _A a;
             const bool isSuccess;
-            const Exception *exception;
+            const Exception exception;
         };
 
         Try() : d() { }
         explicit Try(const A &a) : d(new TryData<A>(a)) { }
-        explicit Try(const Exception *e) : d(new TryData<A>(e)) { }
+        explicit Try(const Exception &e) : d(new TryData<A>(e)) { }
         Try(const Try<A> &other) : d(other.d) { }
         Try<A> &operator=(const Try<A> &other) { this->d = other.d; return *this; }
 
@@ -58,7 +58,7 @@ namespace util {
             throw d->exception;
         }
 
-        const Exception *error() const {
+        const Exception &error() const {
             return d->exception;
         }
 
@@ -72,13 +72,13 @@ namespace util {
             });
         }
 
-        Try<A> recover(std::function<A(const Exception *)> f) const {
-            return recoverWith([f, this](const Exception *e) -> Try<A> {
+        Try<A> recover(std::function<A(const Exception &)> f) const {
+            return recoverWith([f, this](const Exception e) -> Try<A> {
                 return applyTry<A>([f, e]() -> A { return f(e); });
             });
         }
 
-        Try<A> recoverWith(std::function<Try<A>(const Exception *)> f) const {
+        Try<A> recoverWith(std::function<Try<A>(const Exception &)> f) const {
             if(this->isSuccess()) {
                 return *this;
             }
@@ -92,7 +92,7 @@ namespace util {
         Try<A> result;
         try {
             result = Try<A>(f());
-        } catch (const Exception *e) {
+        } catch (const Exception e) {
             result = Try<A>(e);
         }
         return result;

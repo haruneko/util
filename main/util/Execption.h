@@ -23,8 +23,15 @@ namespace util {
         }
     public:
         Exception() : Exception(QString(), NULL) { }
-        Exception(const QString &message, const Exception *cause = NULL) : message(message), cause(cause) { }
+        Exception(const QString &message, const Exception *cause = NULL) : message(message), cause(NULL) {
+            if(cause != NULL) {
+                this->cause = new Exception(*cause);
+            }
+        }
         Exception(const Exception &other) : Exception(other.message, other.cause) { }
+        ~Exception() {
+            delete cause;
+        }
 
         QString messages() const {
             return getMessageInternal(this);
