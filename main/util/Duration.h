@@ -35,6 +35,12 @@ namespace util {
         bool operator ==(const Duration &other) const { return this->d->_microSeconds == other.d->_microSeconds; }
         Duration operator +(const Duration &other) const { return Duration(this->d->_microSeconds + other.d->_microSeconds); }
         Duration operator -(const Duration &other) const { return Duration(this->d->_microSeconds - other.d->_microSeconds); }
+
+        static Duration millis(long m) { return Duration(m * 1000L); }
+        static Duration seconds(long s) { return millis(s * 1000L); }
+        static Duration minutes(long m) { return seconds(m * 60L); }
+        static Duration hours(long h) { return minutes(h * 60L); }
+        static Duration days(long d) { return hours(d * 24L); }
     };
 
 }
