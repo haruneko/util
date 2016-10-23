@@ -10,6 +10,7 @@
 #include <QList>
 #include <QJsonObject>
 #include <QJsonValue>
+#include "JsonValidator.h"
 
 namespace haruneko {
 namespace util {
@@ -30,9 +31,12 @@ namespace util {
          * fromJson method deserialize the given json as value.
          * tparam T should have the overriden method, operator <<,
          * that convert JSON to T.
+         * tparam also needs a class JsonValidator<T> to validate json.
          * And also T should have the constructor T().
          */
-        template<class T> inline static T fromJson(const QJsonValue &value) {
+        template<class T> inline static T fromJson(const QJsonValue &value) throw(const JsonValidationErrorException *) {
+            JsonValidator<T> validator;
+            validator.validate(value);
             T t;
             value >> t;
             return t;

@@ -11,6 +11,7 @@
 #include <QString>
 #include <QSharedData>
 #include <QSharedDataPointer>
+#include <QSharedPointer>
 #include "Execption.h"
 
 namespace haruneko {
@@ -32,15 +33,16 @@ namespace util {
         template <class _A> class TryData : public QSharedData {
         public:
             TryData(const _A &a) : a(a), isSuccess(true), exception() { }
-            TryData(const Exception &e) : a(), isSuccess(false), exception(e) { }
+            TryData(const QSharedPointer<const Exception> &e) : a(), isSuccess(false), exception(e) { }
+            template <class B> TryData(const QSharedPointer<const Exception> e) : a(), isSuccess(false), exception(e) { }
             const _A a;
             const bool isSuccess;
-            const Exception exception;
+            const QSharedPointer<const Exception> exception;
         };
 
         Try() : d() { }
         explicit Try(const A &a) : d(new TryData<A>(a)) { }
-        explicit Try(const Exception &e) : d(new TryData<A>(e)) { }
+        explicit Try(const QSharedPointer<const Exception> &e) : d(new TryData<A>(e)) { }
         Try(const Try<A> &other) : d(other.d) { }
         Try<A> &operator=(const Try<A> &other) { this->d = other.d; return *this; }
 
@@ -55,34 +57,40 @@ namespace util {
             if(isSuccess()) {
                 return d->a;
             }
-            throw d->exception;
+            throw d.data()->exception.data();
         }
 
-        const Exception &error() const {
-            return d->exception;
+        const Exception *error() const {
+            return d->exception.data();
         }
 
         template <class B> Try<B> flatMap(std::function<Try<B>(A)> f) const {
-            return applyTry<B>([f, this]() -> B { return f(this->get()).get(); });
+            if(this->isSuccess()) {
+                return applyTry<B>([f, this]() -> B { return f(this->get()).get(); });
+            } else {
+                return Try<B>(this->d.data()->exception);
+            }
         }
 
         template <class B> Try<B> map(std::function<B(const A&)> f) const {
-            return flatMap<B>([f](const A &a)-> Try<B> {
-                return applyTry<B>([f, a]() -> B { return f(a); });
+            if(this->isSuccess()) {
+                return applyTry<B>([f, this]() -> B { return f(this->get()); });
+            } else {
+                return Try<B>(this->d.data()->exception);
+            }
+        }
+
+        Try<A> recover(std::function<A(const Exception *)> f) const {
+            return recoverWith([f, this](const QSharedPointer<const Exception>) -> Try<A> {
+                return Try<A>(f(this->error()));
             });
         }
 
-        Try<A> recover(std::function<A(const Exception &)> f) const {
-            return recoverWith([f, this](const Exception e) -> Try<A> {
-                return applyTry<A>([f, e]() -> A { return f(e); });
-            });
-        }
-
-        Try<A> recoverWith(std::function<Try<A>(const Exception &)> f) const {
+        Try<A> recoverWith(std::function<Try<A>(const Exception *)> f) const {
             if(this->isSuccess()) {
                 return *this;
             }
-            return f(d->exception);
+            return f(this->error());
         }
     private:
         QSharedDataPointer<TryData<A> > d;
@@ -92,8 +100,8 @@ namespace util {
         Try<A> result;
         try {
             result = Try<A>(f());
-        } catch (const Exception e) {
-            result = Try<A>(e);
+        } catch (const Exception *e) {
+            result = Try<A>(QSharedPointer<const Exception>(e));
         }
         return result;
     }

@@ -29,7 +29,7 @@ namespace util {
             }
         }
         Exception(const Exception &other) : Exception(other.message, other.cause) { }
-        ~Exception() {
+        virtual ~Exception() {
             delete cause;
         }
 
